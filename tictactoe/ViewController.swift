@@ -19,8 +19,11 @@ class ViewController: UIViewController {
         UserPlayer = 1,       // user
         ComputerPlayer = -1   // computer
     }
-    var startHand: Player = Player.UserPlayer
+    var startPlayer: Player = .UserPlayer
     let PlayerImage = [1: "o", -1: "x"]
+    var drawGameCount = 0
+    var userWinCount = 0
+    var computerWinCount = 0
 
     //  [0  1  2]
     //  [3  4  5]
@@ -73,9 +76,10 @@ class ViewController: UIViewController {
     }
     @IBAction func clickChoose(sender: UIButton) {
         if sender.tag == 1 {
-            startHand = Player.UserPlayer
+            startPlayer = .UserPlayer
         } else {
-            startHand = Player.ComputerPlayer
+            startPlayer = .ComputerPlayer
+            aiTurn()
         }
     }
     func reset() {
@@ -93,7 +97,11 @@ class ViewController: UIViewController {
             0, 0, 0,
             0, 0, 0
         ]
-        userMessage.text = ""
+        userMessage.text       = ""
+        countWinUser.text      = "\(userWinCount)"
+        countWinComputer.text  = "\(computerWinCount)"
+        countDraw.text         = "\(drawGameCount)"
+
     }
 
     override func viewDidLoad() {
@@ -131,16 +139,16 @@ class ViewController: UIViewController {
         //println("done = \(done)")
 
         if cells[imageViewTapped.tag] ==  Player.none && !aiDeciding && !done {
-            setImageForTag(imageViewTapped.tag, player:.UserPlayer)
+            setImageForPos(imageViewTapped.tag, player:.UserPlayer)
         }
 
         checkForWin()
-        //aiTurn()
+        aiTurn()
     }
 
-    func setImageForTag(tag: Int,player: Player){
+    func setImageForPos(tag: Int, player: Player){
         let playerMark = player == .UserPlayer ? "x" : "o"
-        println("setting: \(player) tag: \(tag)")
+        println("setting: \(player) mark \(playerMark) tag: \(tag)")
         cells[tag] = player
         images[tag].image = UIImage(named: playerMark)
     }
@@ -157,6 +165,11 @@ class ViewController: UIViewController {
                 if checkForWinLine(player, posAry: posAry) {
                     userMessage.text = "\(key) の勝ちです！"
                     done = true;
+                    if (player == .UserPlayer) {
+                        userWinCount += 1
+                    } else if (player == .ComputerPlayer) {
+                        computerWinCount += 1
+                    }
                     return
                 }
             }
@@ -168,7 +181,7 @@ class ViewController: UIViewController {
         for cell in inList {
             if cells[cell] == value {
                 conclusion += "1"
-            } else {
+            } else if cells[cell] == .none {
                 conclusion += "0"
             }
         }
@@ -176,17 +189,51 @@ class ViewController: UIViewController {
     }
 
     func rowCheck(#value:Player) -> (String, [Int])? {
-        var acceptableFinds = ["011","110","101"]
+        var acceptableFinds = ["011", "110", "101"]
         for line in lines {
-            var result = checkFor(value, inList: line)
-            var findPattern = find(acceptableFinds, result)
+            let result = checkFor(value, inList: line)
+            let findPattern = find(acceptableFinds, result)
             if findPattern != nil {
                 return (result, line)
             }
         }
         return nil
     }
-/**
+
+    func isOccupied(spot:Int) -> Bool {
+        println("occupied \(spot)")
+        if cells[spot] != Player.none {
+            return true
+        }
+        return false
+    }
+
+    func firstAvailable(#isCorner:Bool) -> Int? {
+        var spots = isCorner ? [0,2,6,8] : [1,3,5,7]
+        for spot in spots {
+            println("checking \(spot)")
+            if !isOccupied(spot) {
+                println("not occupied \(spot)")
+                return spot
+            }
+        }
+        return nil
+    }
+
+    func whereToPlay(pattern:String, line:[Int]) -> Int {
+        switch pattern {
+        case "011":
+            return line[0]
+        case "101":
+            return line[1]
+        case "110":
+            return line[2]
+        default:
+            line[1]
+        }
+        return line[1]
+    }
+
     func aiTurn() {
         if done {
             return
@@ -194,11 +241,11 @@ class ViewController: UIViewController {
         aiDeciding = true
 
         // We (the computer) have two in a row
-        if let result = rowCheck(value: Player.ComputerPlayer){
-            println("comp has two in a row")
-            var whereToPlayResult = whereToPlay(result[0], pattern: result[1])
+        if let result = rowCheck(value: Player.ComputerPlayer) {
+            println("コンピュタ側が２目の列があります。")
+            let whereToPlayResult = whereToPlay(result.0, line: result.1)
             if !isOccupied(whereToPlayResult) {
-                setImageForSpot(whereToPlayResult, player: .ComputerPlayer)
+                setImageForPos(whereToPlayResult, player: .ComputerPlayer)
                 aiDeciding = false
                 checkForWin()
                 return
@@ -206,41 +253,44 @@ class ViewController: UIViewController {
         }
 
         // They (the player) have two in a row
-        if let result = rowCheck(value: Player.UserPlayer) {
-            var whereToPlayResult = whereToPlay(result[0], pattern: result[1])
+        if let result = rowCheck(value: Player.UserPlayer)? {
+            let whereToPlayResult = whereToPlay(result.0, line: result.1)
             if !isOccupied(whereToPlayResult) {
-                setImageForSpot(whereToPlayResult, player: .ComputerPlayer)
+                setImageForPos(whereToPlayResult, player: .ComputerPlayer)
                 aiDeciding = false
                 checkForWin()
                 return
             }
         }
 
+        // center
         if !isOccupied(4) {
-            setImageForSpot(4, player: .ComputerPlayer)
+            setImageForPos(4, player: .ComputerPlayer)
             aiDeciding = false
             checkForWin()
             return
         }
 
+        // corner
         if let cornerAvailable = firstAvailable(isCorner: true){
-            setImageForSpot(cornerAvailable, player: .ComputerPlayer)
+            setImageForPos(cornerAvailable, player: .ComputerPlayer)
             aiDeciding = false
             checkForWin()
             return
         }
 
+        // side
         if let sideAvailable = firstAvailable(isCorner: false){
-            setImageForSpot(sideAvailable, player: .ComputerPlayer)
+            setImageForPos(sideAvailable, player: .ComputerPlayer)
             aiDeciding = false
             checkForWin()
             return
         }
 
-        userMessage.text = "Looks like it was a tie!"
+        userMessage.text = "引き分けですね!"
+        drawGameCount += 1
         reset()
         aiDeciding = false
     }
   }
-**/
-}
+
