@@ -21,9 +21,6 @@ class ViewController: UIViewController {
     }
     var startPlayer: Player = .UserPlayer
     let PlayerImage = [1: "o", -1: "x"]
-    var drawGameCount = 0
-    var userWinCount = 0
-    var computerWinCount = 0
 
     //  [0  1  2]
     //  [3  4  5]
@@ -46,7 +43,6 @@ class ViewController: UIViewController {
     @IBOutlet var countWinComputer: UILabel!
     @IBOutlet var countDraw: UILabel!
 
-
     var done = false
     var aiDeciding = false
     var cells: [Player] = []
@@ -63,6 +59,7 @@ class ViewController: UIViewController {
             [0, 4, 8],  // 斜  \
             [2, 4, 6],  //     /
     ]
+
     var countWin = [
             Player.UserPlayer: 0,
             Player.ComputerPlayer: 0,
@@ -75,6 +72,8 @@ class ViewController: UIViewController {
         reset()
     }
     @IBAction func clickChoose(sender: UIButton) {
+        done = false
+        reset()
         if sender.tag == 1 {
             startPlayer = .UserPlayer
         } else {
@@ -82,6 +81,17 @@ class ViewController: UIViewController {
             aiTurn()
         }
     }
+
+    // See http://stackoverflow.com/questions/24026510/how-do-i-shuffle-an-array-in-swift
+    func shuffle<C: MutableCollectionType where C.Index == Int>(var list: C) -> C {
+        let count = countElements(list)
+        for i in 0..<(count - 1) {
+            let j = Int(arc4random_uniform(UInt32(count - i))) + i
+            swap(&list[i], &list[j])
+        }
+        return list
+    }
+
     func reset() {
         for imageView in images {
             imageView.image = nil
@@ -97,11 +107,13 @@ class ViewController: UIViewController {
             0, 0, 0,
             0, 0, 0
         ]
-        userMessage.text       = ""
-        countWinUser.text      = "\(userWinCount)"
-        countWinComputer.text  = "\(computerWinCount)"
-        countDraw.text         = "\(drawGameCount)"
-
+        userMessage.text = ""
+        updateScore()
+    }
+    func updateScore() {
+        countWinUser.text      = "\(countWin[.UserPlayer]!)"
+        countWinComputer.text  = "\(countWin[.ComputerPlayer]!)"
+        countDraw.text         = "\(countWin[.none]!)"
     }
 
     override func viewDidLoad() {
@@ -121,13 +133,11 @@ class ViewController: UIViewController {
             image3, image4, image5,
             image6 ,image7 ,image8
         ]
-        var tagIndex = 0
-        for imageView in images {
+
+        for (tagIndex, imageView) in enumerate(images) {
             imageView.userInteractionEnabled = true
             imageView.tag = tagIndex
             imageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: "imageClicked:"))
-
-            tagIndex += 1
         }
     }
     //Gesture Reocgnizer method
@@ -138,10 +148,9 @@ class ViewController: UIViewController {
         //println(aiDeciding)
         //println("done = \(done)")
 
-        if cells[imageViewTapped.tag] ==  Player.none && !aiDeciding && !done {
+        if cells[imageViewTapped.tag] == Player.none && !aiDeciding && !done {
             setImageForPos(imageViewTapped.tag, player:.UserPlayer)
         }
-
         checkForWin()
         aiTurn()
     }
@@ -151,6 +160,8 @@ class ViewController: UIViewController {
         println("setting: \(player) mark \(playerMark) tag: \(tag)")
         cells[tag] = player
         images[tag].image = UIImage(named: playerMark)
+        plays[play_count] = tag
+        play_count++
     }
 
     func checkForWinLine(value: Player, posAry: [Int]) -> Bool {
@@ -158,22 +169,33 @@ class ViewController: UIViewController {
     }
 
     func checkForWin(){
+        if done {
+            return
+        }
+
         //first row across
         let who = ["コンピュータ": Player.ComputerPlayer, "あなた": Player.UserPlayer]
         for posAry in lines {
             for (key, player) in who {
                 if checkForWinLine(player, posAry: posAry) {
                     userMessage.text = "\(key) の勝ちです！"
-                    done = true;
-                    if (player == .UserPlayer) {
-                        userWinCount += 1
-                    } else if (player == .ComputerPlayer) {
-                        computerWinCount += 1
-                    }
+                    done = true
+                    countWin[player] = 1 + countWin[player]!
+                    updateScore()
                     return
                 }
             }
         }
+        // 空いているマス目がなければ、引き分け
+        for c in cells {
+            if c == Player.none {
+                return
+            }
+        }
+        done = true
+        userMessage.text = "引き分けですね!"
+        countWin[.none] = 1 + countWin[.none]!
+        updateScore()
     }
 
     func checkFor(value:Player, inList:[Int]) -> String {
@@ -188,13 +210,12 @@ class ViewController: UIViewController {
         return conclusion
     }
 
-    func rowCheck(#value:Player) -> (String, [Int])? {
-        var acceptableFinds = ["011", "110", "101"]
+    func rowCheck(#value:Player) -> Int? {
+        let acceptableFinds = ["011", "110", "101"]
         for line in lines {
             let result = checkFor(value, inList: line)
-            let findPattern = find(acceptableFinds, result)
-            if findPattern != nil {
-                return (result, line)
+            if let findPattern = find(acceptableFinds, result) {
+                return whereToPlay(result, line: line)
             }
         }
         return nil
@@ -209,7 +230,7 @@ class ViewController: UIViewController {
     }
 
     func firstAvailable(#isCorner:Bool) -> Int? {
-        var spots = isCorner ? [0,2,6,8] : [1,3,5,7]
+        let spots = shuffle(isCorner ? [0,2,6,8] : [1,3,5,7])
         for spot in spots {
             println("checking \(spot)")
             if !isOccupied(spot) {
@@ -220,77 +241,51 @@ class ViewController: UIViewController {
         return nil
     }
 
-    func whereToPlay(pattern:String, line:[Int]) -> Int {
-        switch pattern {
-        case "011":
-            return line[0]
-        case "101":
-            return line[1]
-        case "110":
-            return line[2]
-        default:
-            line[1]
+    func whereToPlay(pattern:String, line:[Int]) -> Int? {
+        // pattern 中の 0 の位置に相当する line の値を返す。
+        //   例： pattern: "101" なら line[1] を返す
+        for (index, p) in enumerate(pattern) {
+            if p == "0" {
+                return line[index]
+            }
         }
-        return line[1]
+        return nil
     }
 
     func aiTurn() {
         if done {
             return
         }
+
         aiDeciding = true
-
-        // We (the computer) have two in a row
-        if let result = rowCheck(value: Player.ComputerPlayer) {
-            println("コンピュタ側が２目の列があります。")
-            let whereToPlayResult = whereToPlay(result.0, line: result.1)
-            if !isOccupied(whereToPlayResult) {
-                setImageForPos(whereToPlayResult, player: .ComputerPlayer)
-                aiDeciding = false
-                checkForWin()
-                return
-            }
+        if let hand = aiHand() {
+            setImageForPos(hand, player: .ComputerPlayer)
         }
-
-        // They (the player) have two in a row
-        if let result = rowCheck(value: Player.UserPlayer)? {
-            let whereToPlayResult = whereToPlay(result.0, line: result.1)
-            if !isOccupied(whereToPlayResult) {
-                setImageForPos(whereToPlayResult, player: .ComputerPlayer)
-                aiDeciding = false
-                checkForWin()
-                return
-            }
-        }
-
-        // center
-        if !isOccupied(4) {
-            setImageForPos(4, player: .ComputerPlayer)
-            aiDeciding = false
-            checkForWin()
-            return
-        }
-
-        // corner
-        if let cornerAvailable = firstAvailable(isCorner: true){
-            setImageForPos(cornerAvailable, player: .ComputerPlayer)
-            aiDeciding = false
-            checkForWin()
-            return
-        }
-
-        // side
-        if let sideAvailable = firstAvailable(isCorner: false){
-            setImageForPos(sideAvailable, player: .ComputerPlayer)
-            aiDeciding = false
-            checkForWin()
-            return
-        }
-
-        userMessage.text = "引き分けですね!"
-        drawGameCount += 1
-        reset()
+        checkForWin()
         aiDeciding = false
     }
-  }
 
+    func aiHand() -> Int? {
+        // We (the computer) have two in a row
+        if let winHand = rowCheck(value: Player.ComputerPlayer) {
+            return winHand
+        }
+        // They (the player) have two in a row
+        if let defenceHand = rowCheck(value: Player.UserPlayer)? {
+            return defenceHand
+        }
+        // center
+        if !isOccupied(4) {
+            return 4
+        }
+        // corner
+        if let cornerAvailable = firstAvailable(isCorner: true){
+            return cornerAvailable
+        }
+        // side
+        if let sideAvailable = firstAvailable(isCorner: false){
+            return sideAvailable
+        }
+        return nil
+    }
+}
