@@ -60,7 +60,7 @@
                             <button opaque="NO" tag="1" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Sgd-Uw-NvV">
                                 <rect key="frame" x="16" y="395" width="86" height="30"/>
                                 <color key="backgroundColor" red="0.85281951119999999" green="0.89505900689999995" blue="0.95692510190000002" alpha="1" colorSpace="calibratedRGB"/>
-                                <state key="normal" title="先手 ◯">
+                                <state key="normal" title="先手 X">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
@@ -70,7 +70,7 @@
                             <button opaque="NO" tag="-1" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="cq4-TY-EBF">
                                 <rect key="frame" x="250" y="395" width="86" height="30"/>
                                 <color key="backgroundColor" red="0.85281951119999999" green="0.89505900689999995" blue="0.95692510190000002" alpha="1" colorSpace="calibratedRGB"/>
-                                <state key="normal" title="後手 Ｘ">
+                                <state key="normal" title="後手 ◯">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
@@ -91,7 +91,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="◯" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xxt-jH-1lX">
-                                <rect key="frame" x="110" y="433" width="25" height="21"/>
+                                <rect key="frame" x="110" y="453" width="25" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
@@ -102,8 +102,14 @@
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="コンピュータの思考ルーチン：" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Fua-5P-YNr">
+                                <rect key="frame" x="16" y="512" width="196" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Ｘ" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="j4O-rT-PPC">
-                                <rect key="frame" x="110" y="455" width="25" height="17"/>
+                                <rect key="frame" x="110" y="433" width="25" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
@@ -114,20 +120,14 @@
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Ｘ" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RfI-2J-1NQ">
-                                <rect key="frame" x="110" y="477" width="20" height="17"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="0" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4xr-ED-6Ax">
-                                <rect key="frame" x="138" y="433" width="34" height="21"/>
+                                <rect key="frame" x="138" y="434" width="34" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="0" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nbr-Hr-28B">
-                                <rect key="frame" x="138" y="451" width="34" height="21"/>
+                                <rect key="frame" x="138" y="453" width="34" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
@@ -138,13 +138,64 @@
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="ランダム" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eP9-cb-2Y3">
+                                <rect key="frame" x="210" y="512" width="126" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" tag="-1" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="UYn-sa-NyS">
+                                <rect key="frame" x="250" y="434" width="86" height="30"/>
+                                <color key="backgroundColor" red="0.85281951119999999" green="0.89505900689999995" blue="0.95692510190000002" alpha="1" colorSpace="calibratedRGB"/>
+                                <state key="normal" title="undo">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="clickBtnUndo:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="WfF-SM-4pW"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" tag="1" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uIy-Az-a93">
+                                <rect key="frame" x="208" y="541" width="60" height="30"/>
+                                <color key="backgroundColor" red="0.85281951119999999" green="0.89505900689999995" blue="0.95692510190000002" alpha="1" colorSpace="calibratedRGB"/>
+                                <state key="normal" title="定跡">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="chooseAiBrain:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="nWv-0h-XhA"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="sNX-Y2-OVj">
+                                <rect key="frame" x="136" y="541" width="60" height="30"/>
+                                <color key="backgroundColor" red="0.85281951119999999" green="0.89505900689999995" blue="0.95692510190000002" alpha="1" colorSpace="calibratedRGB"/>
+                                <state key="normal" title="ランダム">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="chooseAiBrain:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="cIa-ZZ-kfg"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" tag="2" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rUL-mi-Ebp">
+                                <rect key="frame" x="276" y="541" width="60" height="30"/>
+                                <color key="backgroundColor" red="0.85281951119999999" green="0.89505900689999995" blue="0.95692510190000002" alpha="1" colorSpace="calibratedRGB"/>
+                                <state key="normal" title="MinMax">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="chooseAiBrain:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="3mb-MH-aQk"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <connections>
                         <outlet property="btnReset" destination="2Hc-8F-bkR" id="dZB-sM-vew"/>
+                        <outlet property="btnUndo" destination="UYn-sa-NyS" id="ZVL-Vl-0gM"/>
+                        <outlet property="chooseMinMax" destination="rUL-mi-Ebp" id="msg-CU-iAj"/>
+                        <outlet property="chooseNormal" destination="uIy-Az-a93" id="Il3-dy-EYF"/>
                         <outlet property="chooseO" destination="Sgd-Uw-NvV" id="xpB-Hi-7ya"/>
+                        <outlet property="chooseRandom" destination="sNX-Y2-OVj" id="pj3-6R-BqN"/>
                         <outlet property="chooseX" destination="cq4-TY-EBF" id="HYK-w4-1TY"/>
+                        <outlet property="computerBrain" destination="eP9-cb-2Y3" id="oDR-Jh-vU6"/>
                         <outlet property="countDraw" destination="iES-pi-BTN" id="Kfo-4h-S74"/>
                         <outlet property="countWinComputer" destination="nbr-Hr-28B" id="Yrn-T1-Ewz"/>
                         <outlet property="countWinUser" destination="4xr-ED-6Ax" id="yN9-bo-Q3E"/>
@@ -162,7 +213,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="123" y="395"/>
+            <point key="canvasLocation" x="-281" y="445"/>
         </scene>
     </scenes>
     <resources>

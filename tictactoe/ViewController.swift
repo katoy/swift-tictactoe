@@ -20,7 +20,6 @@ class ViewController: UIViewController {
         ComputerPlayer = -1   // computer
     }
     var startPlayer: Player = .UserPlayer
-    let PlayerImage = [1: "o", -1: "x"]
 
     //  [0  1  2]
     //  [3  4  5]
@@ -42,6 +41,11 @@ class ViewController: UIViewController {
     @IBOutlet var countWinUser: UILabel!
     @IBOutlet var countWinComputer: UILabel!
     @IBOutlet var countDraw: UILabel!
+    @IBOutlet weak var chooseRandom: UIButton!
+    @IBOutlet weak var chooseNormal: UIButton!
+    @IBOutlet weak var chooseMinMax: UIButton!
+    @IBOutlet weak var computerBrain: UILabel!
+    @IBOutlet weak var btnUndo: UIButton!
 
     var done = false
     var aiDeciding = false
@@ -49,6 +53,14 @@ class ViewController: UIViewController {
     var plays: [Int] = []
     var play_count = 0
     var images = [UIImageView]()
+
+    let aiBrains = [
+        (brain: aiHandRandom, name: "ランダム"),     // 0
+        (brain: aiHandBasic,  name: "定石"),        // 1
+        (brain: aiHandMinmax, name: "Ｍｉｎmａｘ"),  // 2
+    ]
+    var aiBrain = aiHandRandom
+
     let lines = [
             [0, 1, 2],  // 横 1 行目
             [3, 4, 5],  //    2 行目
@@ -78,8 +90,29 @@ class ViewController: UIViewController {
             startPlayer = .UserPlayer
         } else {
             startPlayer = .ComputerPlayer
-            aiTurn()
+            aiTurn(aiBrain(self))
         }
+    }
+
+    @IBAction func chooseAiBrain(sender: UIButton) {
+        let kind = sender.tag
+        aiBrain = aiBrains[kind].brain
+        computerBrain.text = sender.titleLabel?.text
+    }
+
+    @IBAction func clickBtnUndo(sender: AnyObject) {
+        undoGame()
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        resetImages()
+        reset()
+    }
+
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
     }
 
     // See http://stackoverflow.com/questions/24026510/how-do-i-shuffle-an-array-in-swift
@@ -110,24 +143,51 @@ class ViewController: UIViewController {
         userMessage.text = ""
         updateScore()
     }
+
+    // 最後の手を１つ取り消す。
+    func undoOnePlay() -> Player? {
+        if play_count == 0 {
+            return nil
+        }
+
+        let idx = play_count - 1
+        let hand = plays[idx]
+        let who = cells[hand]
+
+        images[hand].image = nil
+        cells[hand] = Player.none
+        plays[idx] = 0
+        play_count -= 1
+        return who
+    }
+
+    // 一つ前の user の手までを取り消す。
+    func undoGame() {
+        // スコアの値を戻す
+        if let winer = checkGame(cells) {
+            countWin[winer] = countWin[winer]! - 1
+        } else if has_empty_cell(cells) == false {
+            countWin[.none] = countWin[.none]! - 1
+        }
+        updateScore()
+
+        // 手を戻す
+        if let who = undoOnePlay() {
+            if who == Player.ComputerPlayer {
+                undoOnePlay()
+            }
+        }
+        done = false
+        userMessage.text = ""
+    }
+
     func updateScore() {
         countWinUser.text      = "\(countWin[.UserPlayer]!)"
         countWinComputer.text  = "\(countWin[.ComputerPlayer]!)"
         countDraw.text         = "\(countWin[.none]!)"
     }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        setImages()
-        reset()
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-
-    func setImages() {
+    func resetImages() {
         images = [
             image0, image1, image2,
             image3, image4, image5,
@@ -144,7 +204,7 @@ class ViewController: UIViewController {
     func imageClicked(reco: UITapGestureRecognizer) {
         var imageViewTapped = reco.view as UIImageView
 
-        println(cells[imageViewTapped.tag])
+        //println(cells[imageViewTapped.tag])
         //println(aiDeciding)
         //println("done = \(done)")
 
@@ -152,20 +212,37 @@ class ViewController: UIViewController {
             setImageForPos(imageViewTapped.tag, player:.UserPlayer)
         }
         checkForWin()
-        aiTurn()
+        aiTurn(aiBrain(self))
     }
 
     func setImageForPos(tag: Int, player: Player){
         let playerMark = player == .UserPlayer ? "x" : "o"
-        println("setting: \(player) mark \(playerMark) tag: \(tag)")
+        // println("setting: \(player) mark \(playerMark) tag: \(tag)")
         cells[tag] = player
         images[tag].image = UIImage(named: playerMark)
         plays[play_count] = tag
-        play_count++
+        play_count += 1
     }
 
-    func checkForWinLine(value: Player, posAry: [Int]) -> Bool {
-        return cells[posAry[0]] == value && cells[posAry[1]] == value && cells[posAry[2]] == value
+    // 与えられた盤面の勝者を返す。
+    func checkGame(cells: [Player]) -> Player? {
+        for posAry in lines {
+            let who = cells[posAry[0]]
+            if who != .none && who == cells[posAry[1]] && who == cells[posAry[2]] {
+                return who
+            }
+        }
+        return nil // 勝負はまだ決まっていない。
+    }
+
+    // 空きのマスがあるかを調べる。
+    func has_empty_cell(cells: [Player]) -> Bool {
+        for c in cells {
+            if c == Player.none {
+                return true
+            }
+        }
+        return false
     }
 
     func checkForWin(){
@@ -173,28 +250,22 @@ class ViewController: UIViewController {
             return
         }
 
-        //first row across
-        let who = ["コンピュータ": Player.ComputerPlayer, "あなた": Player.UserPlayer]
-        for posAry in lines {
-            for (key, player) in who {
-                if checkForWinLine(player, posAry: posAry) {
-                    userMessage.text = "\(key) の勝ちです！"
-                    done = true
-                    countWin[player] = 1 + countWin[player]!
-                    updateScore()
-                    return
-                }
-            }
+        let names = [Player.ComputerPlayer: "コンピュータ", Player.UserPlayer: "あなた"]
+        let winer = checkGame(cells)
+        // 勝負がついている
+        if let winer = checkGame(cells) {
+            userMessage.text = "\(names[winer]!) の勝ちです！"
+            done = true
+            countWin[winer] = 1 + countWin[winer]!
+        } else if has_empty_cell(cells) {
+            // 空いているマス目があれば、ゲームは継続する
+            return
+        } else {
+            // 引き分け
+            done = true
+            userMessage.text = "引き分けですね!"
+            countWin[.none] = 1 + countWin[.none]!
         }
-        // 空いているマス目がなければ、引き分け
-        for c in cells {
-            if c == Player.none {
-                return
-            }
-        }
-        done = true
-        userMessage.text = "引き分けですね!"
-        countWin[.none] = 1 + countWin[.none]!
         updateScore()
     }
 
@@ -222,7 +293,7 @@ class ViewController: UIViewController {
     }
 
     func isOccupied(spot:Int) -> Bool {
-        println("occupied \(spot)")
+        // println("occupied \(spot)")
         if cells[spot] != Player.none {
             return true
         }
@@ -232,9 +303,9 @@ class ViewController: UIViewController {
     func firstAvailable(#isCorner:Bool) -> Int? {
         let spots = shuffle(isCorner ? [0,2,6,8] : [1,3,5,7])
         for spot in spots {
-            println("checking \(spot)")
+            // println("checking \(spot)")
             if !isOccupied(spot) {
-                println("not occupied \(spot)")
+                // println("not occupied \(spot)")
                 return spot
             }
         }
@@ -252,20 +323,32 @@ class ViewController: UIViewController {
         return nil
     }
 
-    func aiTurn() {
+    func aiTurn(brain: () -> Int?) {
         if done {
             return
         }
 
         aiDeciding = true
-        if let hand = aiHand() {
+        if let hand = brain() {
             setImageForPos(hand, player: .ComputerPlayer)
         }
         checkForWin()
         aiDeciding = false
     }
 
-    func aiHand() -> Int? {
+    // 空いているマスをランダムに選ぶ。
+    func aiHandRandom() -> Int? {
+        let spots = shuffle([0, 1, 2, 3, 4, 5, 6, 7, 8])
+        for pos in spots {
+            if !isOccupied(pos){
+                return pos
+            }
+        }
+        return nil
+    }
+
+    // 通常の戦略に従って手を選ぶ。
+    func aiHandBasic() -> Int? {
         // We (the computer) have two in a row
         if let winHand = rowCheck(value: Player.ComputerPlayer) {
             return winHand
@@ -287,5 +370,11 @@ class ViewController: UIViewController {
             return sideAvailable
         }
         return nil
+    }
+
+    // ミニマックス法を使って手を選ぶ。
+    func aiHandMinmax() -> Int? {
+        return aiHandRandom()  // 実装する前なので ランダムの手にしておく
+
     }
 }
