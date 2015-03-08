@@ -50,6 +50,7 @@ class ViewController: UIViewController {
     var done = false
     var aiDeciding = false
     var cells: [Player] = []
+    var v_cells: [Player] = []
     var plays: [Int] = []
     var play_count = 0
     var images = [UIImageView]()
@@ -372,9 +373,65 @@ class ViewController: UIViewController {
         return nil
     }
 
+    func v_play_one(player: Player, v_hand: Int) -> Int {
+        let enemy_player = (player == Player.ComputerPlayer) ? Player.UserPlayer : Player.ComputerPlayer
+        v_cells[v_hand] = player
+
+        let winer = checkGame(v_cells)
+        if winer == player {
+            v_cells[v_hand] = Player.none
+            return 1  // 勝ち
+        } else if winer == enemy_player {
+            v_cells[v_hand] = Player.none
+            return -1 // 負け
+        }
+        if has_empty_cell(v_cells) == false {
+            v_cells[v_hand] = Player.none
+            return 0  // 引き分け
+        }
+
+        // 反対側のプレーヤが手を指す。
+        var max_score = -10
+        for (w_hand, w_cell) in enumerate(v_cells) {
+            if w_cell == .none {
+                let score = v_play_one(enemy_player, v_hand: w_hand)
+                if score > max_score {
+                    max_score = score
+                    if score >= 1 {
+                        break
+                    }
+                }
+            }
+        }
+        v_cells[v_hand] = Player.none
+        return max_score * (-1)
+    }
+
     // ミニマックス法を使って手を選ぶ。
     func aiHandMinmax() -> Int? {
-        return aiHandRandom()  // 実装する前なので ランダムの手にしておく
+        // 一手目なら、 センターを無条件で選ぶ。
+        if play_count == 0 {
+            return 4  // センター
+        }
+        var max_score = -10
+        var max_score_hand = -1
+        v_cells = cells  // 複写
 
+        for (v_hand, cell) in enumerate(v_cells) {
+            if cell == .none {
+                let score = v_play_one(Player.ComputerPlayer, v_hand: v_hand)
+                if score > max_score {
+                    max_score = score
+                    max_score_hand = v_hand
+                    if score >= 1 {
+                        break
+                    }
+                }
+            }
+        }
+        if max_score_hand != -1 {
+            return max_score_hand
+        }
+        return aiHandRandom()
     }
 }
