@@ -211,9 +211,9 @@ class ViewController: UIViewController {
 
         if cells[imageViewTapped.tag] == Player.none && !aiDeciding && !done {
             setImageForPos(imageViewTapped.tag, player:.UserPlayer)
+            checkForWin()
+            aiTurn(aiBrain(self))
         }
-        checkForWin()
-        aiTurn(aiBrain(self))
     }
 
     func setImageForPos(tag: Int, player: Player){
@@ -330,9 +330,8 @@ class ViewController: UIViewController {
         }
 
         aiDeciding = true
-        if let hand = brain() {
-            setImageForPos(hand, player: .ComputerPlayer)
-        }
+        let hand = brain()
+        setImageForPos(hand!, player: .ComputerPlayer)
         checkForWin()
         aiDeciding = false
     }
@@ -373,7 +372,7 @@ class ViewController: UIViewController {
         return nil
     }
 
-    func v_play_one(player: Player, v_hand: Int) -> Int {
+    func v_play_one(player: Player, v_hand: Int) -> Int { // return score
         let enemy_player = (player == Player.ComputerPlayer) ? Player.UserPlayer : Player.ComputerPlayer
         v_cells[v_hand] = player
 
@@ -407,31 +406,59 @@ class ViewController: UIViewController {
         return max_score * (-1)
     }
 
-    // ミニマックス法を使って手を選ぶ。
-    func aiHandMinmax() -> Int? {
-        // 一手目なら、 センターを無条件で選ぶ。
-        if play_count == 0 {
-            return 4  // センター
-        }
-        var max_score = -10
-        var max_score_hand = -1
-        v_cells = cells  // 複写
+    // 与えられた状況での、空きマスのスコアを計算
+    func get_hands_with_score(player: Player, v_cells: [Player]) -> [(Int, Int)] {
+        let enemy_player = (player == Player.ComputerPlayer) ? Player.UserPlayer : Player.ComputerPlayer
+        var ans: [(Int, Int)] = []
 
-        for (v_hand, cell) in enumerate(v_cells) {
-            if cell == .none {
-                let score = v_play_one(Player.ComputerPlayer, v_hand: v_hand)
-                if score > max_score {
-                    max_score = score
-                    max_score_hand = v_hand
-                    if score >= 1 {
-                        break
-                    }
-                }
+        var work_cells = v_cells  // 複写
+        for (w_hand, w_cell) in enumerate(v_cells) {
+            if w_cell != Player.none {
+                continue
+            }
+
+            work_cells[w_hand] = player
+            let winer = checkGame(work_cells)
+            if winer == player {
+                ans += [(w_hand, 1)]    // 勝ち
+                return ans
+            } else if winer == enemy_player {
+                ans += [(w_hand, -1)]   // 負け
+            } else if has_empty_cell(work_cells) == false {
+                ans += [(w_hand, 0)]    // 引き分け
+            } else {
+                // 敵の最善手を探す。
+                let enemy_hand = get_best_hand_with_score(enemy_player, v_cells: work_cells)
+                ans += [(w_hand, (-1) * enemy_hand.1)]
+            }
+            work_cells[w_hand] = Player.none
+        }
+        return ans
+    }
+
+    // 与えられた状況でのベストな手選ぶ。
+    func get_best_hand_with_score(player: Player, v_cells: [Player]) -> (Int, Int) {
+        var max_info: (Int, Int) = (-1, -10)
+        for hand in get_hands_with_score(player, v_cells: v_cells) {
+            if hand.1 == 1 {
+                return hand
+            }
+            if hand.1 >= max_info.1 {
+                max_info = hand
             }
         }
-        if max_score_hand != -1 {
-            return max_score_hand
+        return max_info
+    }
+
+    // ミニマックス法を使って手を選ぶ。
+    func aiHandMinmax() -> Int? {
+        // 一手目なら、 センター  または 角を無条件で選ぶ。
+        if play_count <= 1 {
+            if cells[4] == .none {
+                return 4  // センター
+            }
         }
-        return aiHandRandom()
+        let hand_info = get_best_hand_with_score(Player.ComputerPlayer, v_cells: cells)
+        return hand_info.0
     }
 }
