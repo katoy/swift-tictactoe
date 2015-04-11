@@ -121,9 +121,9 @@ class ViewController: UIViewController {
     }
     // See http://stackoverflow.com/questions/24026510/how-do-i-shuffle-an-array-in-swift
     func shuffle<C: MutableCollectionType where C.Index == Int>(var list: C) -> C {
-        let count = countElements(list)
-        for i in 0..<(count - 1) {
-            let j = Int(arc4random_uniform(UInt32(count - i))) + i
+        let c = count(list)
+        for i in 0..<(c - 1) {
+            let j = Int(arc4random_uniform(UInt32(c - i))) + i
             swap(&list[i], &list[j])
         }
         return list
@@ -206,7 +206,7 @@ class ViewController: UIViewController {
     }
     //Gesture Reocgnizer method
     func imageClicked(reco: UITapGestureRecognizer) {
-        var imageViewTapped = reco.view as UIImageView
+        var imageViewTapped = reco.view as! UIImageView
 
         //println(cells[imageViewTapped.tag])
         //println(aiDeciding)
@@ -360,7 +360,7 @@ class ViewController: UIViewController {
             return winHand
         }
         // They (the player) have two in a row
-        if let defenceHand = rowCheck(.UserPlayer)? {
+        if let defenceHand = rowCheck(.UserPlayer) {
             return defenceHand
         }
         // center
@@ -400,7 +400,7 @@ class ViewController: UIViewController {
         }
 
         // 反対側のプレーヤが手を指す。
-        var max_score = -10
+        var max_score = Int.min
         for (w_hand, w_cell) in enumerate(v_cells) {
             if w_cell == .none {
                 let score = v_play_one(enemy_player, v_hand: w_hand)
@@ -446,7 +446,7 @@ class ViewController: UIViewController {
 
     // 与えられた状況でのベストな手を選ぶ。
     func get_best_hand_with_score(player: Player, v_cells: [Player]) -> (Int, Int) {
-        var max_score = -10
+        var max_score = Int.min
         var max_score_hand: Int? = nil
         for hand in get_hands_with_score(player, v_cells: v_cells) {
             if hand.1 == 1 {
